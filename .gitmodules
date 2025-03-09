@@ -1,0 +1,3 @@
+[submodule "wordle-data"]
+	path = wordle-data
+	url = https://github.com/alec-chicherini/wordle-data.git

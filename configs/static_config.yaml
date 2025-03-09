@@ -1,0 +1,86 @@
+config_vars: /etc/wordle-server-game/config_vars.yaml
+components_manager:
+    task_processors:                        # Task processor is an executor for coroutine tasks
+        main-task-processor:                # Make a task processor for CPU-bound coroutine tasks.
+            thread_name: main-worker
+            worker_threads: $main_worker_threads # Process tasks in 4 threads.
+            worker_threads#fallback: 2      # Process tasks in 4 threads.
+        fs-task-processor:                  # Make a separate task processor for filesystem bound tasks.
+            thread_name: fs-worker
+            worker_threads: $fs_worker_threads
+            worker_threads#fallback: 1
+        monitor-task-processor:             # Make a separate task processor for monitoring.
+            thread_name: mon-worker
+            worker_threads: $monitor_worker_threads
+            worker_threads#fallback: 1
+
+    default_task_processor: main-task-processor
+
+    components:                       # Configuring components that were registered via component_list
+        server:
+            listener:                 # configuring the main listening socket...
+                port: $server_port    # ...to listen on this port and...
+                port#fallback: 8080
+                task_processor: main-task-processor    # ...process incoming requests on this task processor.
+                tls:
+                   private-key: /etc/ssl/certs/repotest_ru_private_key.pem
+                   cert: /etc/ssl/certs/repotest_ru_certificate_full_chain.pem
+        logging:
+            fs-task-processor: fs-task-processor
+            loggers:
+                default:
+                    file_path: '@stderr'
+                    level: $logger_level
+                    level#fallback: Debug
+                    overflow_behavior: discard  # Drop logs if the system is too busy to write them down.
+
+        # Dynamic config options. Cache is disabled, updates are disabled.
+        dynamic-config:
+            # For most of userver dynamic configs, defaults are used, some are overridden here.
+            # See userver "dynamic config" docs for what configs exist.
+            defaults:
+                HTTP_CLIENT_CONNECTION_POOL_SIZE: 1000
+                POSTGRES_DEFAULT_COMMAND_CONTROL:
+                    network_timeout_ms: 750
+                    statement_timeout_ms: 500
+
+        testsuite-support: {}
+
+        http-client:
+            load-enabled: $is_testing
+            load-enabled#fallback: false
+            fs-task-processor: fs-task-processor
+
+        dns-client:
+            fs-task-processor: fs-task-processor
+
+        tests-control:
+            load-enabled: false
+            path: /tests/{action}
+            method: POST
+            task_processor: main-task-processor
+
+        handler-ping:
+            path: /ping
+            method: GET
+            task_processor: main-task-processor
+            throttling_enabled: false
+            url_trailing_slash: strict-match
+
+        handler-new-game:                    
+            path: /v1/new-game
+            method: POST
+            task_processor: main-task-processor
+
+        handler-row:                    
+            path: /v1/row
+            method: POST
+            task_processor: main-task-processor
+
+        postgres-db-wordle:
+            dbconnection: $dbconnection
+            dbconnection#env: DB_CONNECTION
+            blocking_task_processor: fs-task-processor
+            dns_resolver: async
+            sync-start: true
+            connlimit_mode: manual

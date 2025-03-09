@@ -1,0 +1,7 @@
+main_worker_threads: 2
+fs_worker_threads: 1
+monitor_worker_threads: 1
+logger_level: debug
+is_testing: true
+server_port: 8080
+dbconnection: 'postgresql://wordle-server-game:password@localhost:5432/postgres-db-wordle-test'

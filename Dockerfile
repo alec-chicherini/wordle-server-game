@@ -7,7 +7,8 @@ RUN apt update && \
     build-essential \
     xz-utils \
     wget \
-    clang-format
+    clang-format \
+    unzip
 
 RUN wget -O - https://raw.githubusercontent.com/alec-chicherini/development-scripts/refs/heads/main/cmake/install_cmake.sh 2>/dev/null | bash
 
@@ -21,6 +22,7 @@ RUN wget https://github.com/userver-framework/userver/releases/download/v2.7/ubu
     dpkg -i ubuntu24.04-libuserver-all-dev_2.7_amd64.deb
 
 FROM ubuntu2404_userver_2_7 AS wordle_server_game_build
+RUN apt install -y protobuf-compiler libprotoc-dev
 COPY . /wordle-server-game
 RUN cd /wordle-server-game && mkdir build && cd build && \
     cmake .. -DCMAKE_C_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13 && \
@@ -29,4 +31,7 @@ RUN cd /wordle-server-game && mkdir build && cd build && \
     mkdir /result && \
     cp *.deb /result/
 
-ENTRYPOINT ["ls /result && echo .deb file in /result/" ]
+FROM wordle_server_game_build AS wordle_server_game_run
+RUN dpkg -i /result/*.deb
+
+ENTRYPOINT ["wordle-server-game", "--config", "/etc/wordle-server-game/static_config.yaml" ]

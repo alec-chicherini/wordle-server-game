@@ -4,4 +4,3 @@ monitor_worker_threads: 1
 logger_level: info
 is_testing: false
 server_port: 8080
-dbconnection: 'postgresql://wordle-server-game:password@localhost:5432/postgres-db-wordle'

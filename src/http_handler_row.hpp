@@ -4,17 +4,15 @@
 #include <userver/server/handlers/http_handler_base.hpp>
 #include <userver/storages/postgres/cluster.hpp>
 #include <userver/storages/postgres/component.hpp>
-
 namespace wordle_server_game {
-class HttpHandlerNewGame final
-    : public userver::server::handlers::HttpHandlerBase {
+class HttpHandlerRow final : public userver::server::handlers::HttpHandlerBase {
  public:
-  static constexpr std::string_view kName = "handler-new-game";
+  static constexpr std::string_view kName = "handler-row";
 
   using userver::server::handlers::HttpHandlerBase::HttpHandlerBase;
 
-  HttpHandlerNewGame(const userver::components::ComponentConfig& config,
-                     const userver::components::ComponentContext& context);
+  HttpHandlerRow(const userver::components::ComponentConfig& config,
+                 const userver::components::ComponentContext& context);
 
   std::string HandleRequestThrow(
       const userver::server::http::HttpRequest& request,
